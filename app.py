@@ -127,8 +127,51 @@ if search_query == "すべて（ホーム画面）":
 else:
     target_keywords = [search_query]
 
-with st.spinner("ニュースを取得中..."):
-    entries = fetch_all_news(target_keywords)
+# ユーザーUXの向上：画面全体をグレーアウトして操作をブロックするオーバーレイを表示
+loading_overlay = st.empty()
+loading_overlay.markdown("""
+    <style>
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        z-index: 999999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        color: white;
+        text-align: center;
+    }
+    .spinner-custom {
+        border: 5px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        border-top: 5px solid #ffffff;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    </style>
+    <div class="loading-overlay">
+        <div class="spinner-custom"></div>
+        <h2>📡 最新のニュース情報を収集しています...</h2>
+        <p style="font-size: 1.1em;">新規取得には数秒〜数十秒かかる場合があります。<br>画面はこのまま触らずにお待ちください。</p>
+    </div>
+""", unsafe_allow_html=True)
+
+entries = fetch_all_news(target_keywords)
+
+# 取得が終わったらオーバーレイごと消去する
+loading_overlay.empty()
 
 if entries:
     if search_query == "すべて（ホーム画面）":
