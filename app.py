@@ -31,8 +31,7 @@ def save_keywords(home_str, search_str):
 # ページ設定
 st.set_page_config(page_title="ニュース収集ダッシュボード", page_icon="📰", layout="wide")
 
-# タイトルの縮小（スマホのファーストビュー改善）
-st.markdown("<h2 style='text-align: center; font-size: 1.6rem; margin-top: -30px; margin-bottom: 20px;'>📰 ニュース収集ダッシュボード</h2>", unsafe_allow_html=True)
+# （「ニュース収集ダッシュボード」という不要なタイトルは、画面領域確保のため削除済みです）
 
 # サイドバー: 検索機能
 st.sidebar.header("検索設定")
@@ -199,27 +198,34 @@ if entries:
     padding: 15px 0;
 }
 .smart-card {
+    /* ✨ どんなブラウザでも確実に発色・分離するデザインに変更 */
+    /* 白背景なら「気品あるアイス・スレートブルー」、黒背景なら「深みのある美しいミッドナイトブルー」になります */
     background-color: var(--background-color);
-    border: 1px solid var(--secondary-background-color);
-    border-top: 5px solid var(--primary-color);
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+    background-image: linear-gradient(135deg, rgba(20, 100, 220, 0.12) 0%, rgba(20, 100, 220, 0.06) 100%);
+    border: none;
+    border-left: 5px solid #2B6CB0; /* 左端は美しいダークブルーのアクセントライン */
+    border-radius: 12px;
+    padding: 24px;
+    /* よりカードらしさを出すための自然な影 */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* 青色背景に合わせて影を微調整 */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease-out;
     height: 100%;
 }
 .smart-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0px 10px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    /* ホバー時はブルーの深みを増して反応を示す */
+    background-image: linear-gradient(135deg, rgba(20, 100, 220, 0.18) 0%, rgba(20, 100, 220, 0.08) 100%);
 }
 .smart-card-title {
-    font-size: 1.1rem;
-    font-weight: bold;
-    line-height: 1.4;
-    margin-bottom: 12px;
+    font-size: 1.15rem;
+    font-weight: 600; /* 野暮ったい極太文字をやめ、洗練されたセミボールドに変更 */
+    line-height: 1.5;
+    letter-spacing: 0.02em; /* 文字の詰まりを解消する微細な字間調整 */
+    margin-bottom: 16px;
 }
 .smart-card-title a {
     text-decoration: none;
@@ -232,21 +238,27 @@ if entries:
 .smart-card-meta {
     font-size: 0.85em;
     color: var(--text-color);
-    opacity: 0.6;
+    opacity: 0.7;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 .smart-meta-tag {
-    background-color: var(--secondary-background-color);
-    padding: 4px 8px;
-    border-radius: 12px;
+    /* タグ部分はさらに濃いブルー領域へ */
+    background-color: var(--background-color);
+    background-image: linear-gradient(135deg, rgba(20, 100, 220, 0.25) 0%, rgba(20, 100, 220, 0.25) 100%);
+    color: var(--text-color);
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-weight: 500;
 }
 .smart-card-summary {
     font-size: 0.85em;
-    margin-top: 12px;
-    padding: 10px;
-    background-color: var(--secondary-background-color);
+    margin-top: 16px;
+    padding: 12px 14px;
+    /* 要約ブロックも独立したソフトブルーの領域へ */
+    background-color: var(--background-color);
+    background-image: linear-gradient(135deg, rgba(20, 100, 220, 0.18) 0%, rgba(20, 100, 220, 0.18) 100%);
     border-radius: 8px;
     color: var(--text-color);
     opacity: 0.8;
@@ -260,10 +272,11 @@ if entries:
         padding: 4px 0;
     }
     .smart-card {
-        padding: 10px 12px; /* スマホではカード内余白を極小化 */
-        border-top: 3px solid var(--primary-color);
-        border-radius: 6px; /* 角枠を少しシャープにしてスペース削減 */
-        box-shadow: 0px 1px 4px rgba(0,0,0,0.1);
+        padding: 10px 12px;
+        border: none;
+        border-left: 3px solid var(--primary-color); /* 上線ではなく左からアクセントを入れる */
+        border-radius: 6px;
+        box-shadow: 0px 2px 6px rgba(100, 100, 100, 0.08);
     }
     .smart-card-title {
         font-size: 0.95rem; /* タイトル文字を読みやすさを維持した限界まで縮小 */
