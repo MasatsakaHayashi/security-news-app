@@ -31,7 +31,8 @@ def save_keywords(home_str, search_str):
 # ページ設定
 st.set_page_config(page_title="ニュース収集ダッシュボード", page_icon="📰", layout="wide")
 
-st.title("📰 ニュース収集ダッシュボード")
+# タイトルの縮小（スマホのファーストビュー改善）
+st.markdown("<h2 style='text-align: center; font-size: 1.6rem; margin-top: -30px; margin-bottom: 20px;'>📰 ニュース収集ダッシュボード</h2>", unsafe_allow_html=True)
 
 # サイドバー: 検索機能
 st.sidebar.header("検索設定")
@@ -186,25 +187,136 @@ if entries:
     else:
         st.success(f"「{search_query}」の検索結果: {len(entries)} 件（うち最新の {len(display_entries)} 件を表示中）")
         
-    # ニュースをカード型デザインで並べて表示
+    # スマホ向けに視認性を高めた「SmartNews風」カードブロックレイアウト
+    # CSS定義（グリッドレイアウトとカードデザイン）
+    st.markdown("""
+<style>
+.smart-grid {
+    display: grid;
+    /* PCではカード幅を広く取り、見出しが1-2行に収まるようにする（スマホ画面は下の@mediaで上書きされます） */
+    grid-template-columns: repeat(auto-fill, minmax(700px, 1fr));
+    gap: 20px;
+    padding: 15px 0;
+}
+.smart-card {
+    background-color: var(--background-color);
+    border: 1px solid var(--secondary-background-color);
+    border-top: 5px solid var(--primary-color);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+}
+.smart-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0px 10px 20px rgba(0,0,0,0.15);
+}
+.smart-card-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+.smart-card-title a {
+    text-decoration: none;
+    color: var(--text-color);
+}
+.smart-card-title a:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+.smart-card-meta {
+    font-size: 0.85em;
+    color: var(--text-color);
+    opacity: 0.6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.smart-meta-tag {
+    background-color: var(--secondary-background-color);
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+.smart-card-summary {
+    font-size: 0.85em;
+    margin-top: 12px;
+    padding: 10px;
+    background-color: var(--secondary-background-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+/* スマホ表示専用（PC側のデザインを崩さず、文字・余白を極限まで縮小して1画面の表示数を最大化する） */
+@media screen and (max-width: 768px) {
+    .smart-grid {
+        grid-template-columns: 1fr;
+        gap: 8px; /* カード間のすきまを極小化 */
+        padding: 4px 0;
+    }
+    .smart-card {
+        padding: 10px 12px; /* スマホではカード内余白を極小化 */
+        border-top: 3px solid var(--primary-color);
+        border-radius: 6px; /* 角枠を少しシャープにしてスペース削減 */
+        box-shadow: 0px 1px 4px rgba(0,0,0,0.1);
+    }
+    .smart-card-title {
+        font-size: 0.95rem; /* タイトル文字を読みやすさを維持した限界まで縮小 */
+        margin-bottom: 6px;
+        line-height: 1.3;
+    }
+    .smart-card-meta {
+        font-size: 0.75em;
+    }
+    .smart-meta-tag {
+        padding: 2px 6px; /* タグの余白も極限まで削る */
+        border-radius: 4px;
+    }
+    .smart-card-summary {
+        font-size: 0.75em;
+        margin-top: 6px;
+        padding: 8px;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
+    news_html_blocks = []
+    
     for entry in display_entries:
-        with st.container(border=True):
-            # 関連キーワードのタグ表示
-            kw_tags = ", ".join(entry["source_keywords"])
-            st.caption(f"🏷️ 関連キーワード: {kw_tags}")
-            
-            # 記事タイトル
-            st.subheader(entry["title"])
-            
-            # 発行日
-            st.caption(f"📅 発行日: {entry['published']}")
-            
-            # 要約 (表示設定がONの場合のみ、重いHTMLを描画する)
-            if show_summary:
-                st.markdown(entry["summary"], unsafe_allow_html=True)
-            
-            # 元記事へのリンクボタン
-            if entry.get("link"):
-                st.link_button("🔗 元記事を読む", entry["link"])
+        kw_tags = ", ".join(entry["source_keywords"])
+        title = entry.get("title", "無題")
+        date = entry.get("published", "日付不明")
+        link = entry.get("link", "#")
+        
+        summary_block = ""
+        if show_summary:
+            summary = entry.get("summary", "")
+            summary_block = f'<div class="smart-card-summary">{summary}</div>'
+
+        # カード1枚分のHTML（改行を完全に取り除き、Markdownによるコードブロック化・レイアウト破壊のバグを防ぐ）
+        card_html = f"""
+        <div class="smart-card">
+            <div class="smart-card-title">
+                <a href="{link}" target="_blank">{title}</a>
+            </div>
+            <div style="margin-top: auto; padding-top: 8px;">
+                <div class="smart-card-meta">
+                    <span>📅 {date}</span>
+                    <span class="smart-meta-tag">🏷️ {kw_tags}</span>
+                </div>
+                {summary_block}
+            </div>
+        </div>
+        """.replace('\n', '')
+        news_html_blocks.append(card_html)
+        
+    # 全てのカードをグリッドコンテナで囲んで一気に描画
+    st.markdown('<div class="smart-grid">' + "".join(news_html_blocks) + '</div>', unsafe_allow_html=True)
 else:
     st.warning("ニュースが見つかりませんでした。別のキーワードをお試しください。")
