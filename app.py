@@ -190,6 +190,10 @@ if entries:
     # CSS定義（グリッドレイアウトとカードデザイン）
     st.markdown("""
 <style>
+/* スマホ等で下部に現れるStreamlit仕様の「白いフッター領域」を完全に透過させ、アプリの表示領域を最下部まで拡張する */
+footer { visibility: hidden !important; }
+.stApp { padding-bottom: 0px !important; }
+
 .smart-grid {
     display: grid;
     /* PCではカード幅を広く取り、見出しが1-2行に収まるようにする（スマホ画面は下の@mediaで上書きされます） */
