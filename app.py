@@ -79,6 +79,11 @@ search_keyword_list = new_search_list
 # 表示するキーワードの絞り込み UI
 search_query = st.sidebar.selectbox("キーワードを選択", options=["すべて（ホーム画面）"] + search_keyword_list, index=0)
 
+st.sidebar.markdown("---")
+st.sidebar.subheader("📱 動作軽量化・表示設定")
+display_limit = st.sidebar.slider("最大表示件数", min_value=10, max_value=300, value=50, step=10, help="動作が重い（カクつく）場合は、表示件数を減らしてください。")
+show_summary = st.sidebar.checkbox("記事の要約テキストを表示する", value=False, help="チェックを外すとDOM描画量が激減し、スマホでのスクロールが非常に軽くなります。")
+
 # ニュースを取得する機能 (Streamlitのキャッシュを利用して高速化)
 @st.cache_data(ttl=900)  # 15分キャッシュ
 def fetch_all_news(keywords):
@@ -174,13 +179,15 @@ entries = fetch_all_news(target_keywords)
 loading_overlay.empty()
 
 if entries:
+    display_entries = entries[:display_limit]
+    
     if search_query == "すべて（ホーム画面）":
-        st.success(f"ホーム画面用キーワード（{len(target_keywords)}個）から {len(entries)} 件のニュースを取得しました。")
+        st.success(f"検索結果: {len(entries)} 件（うち最新の {len(display_entries)} 件を表示中）")
     else:
-        st.success(f"「{search_query}」の関連ニュースを {len(entries)} 件取得しました。")
+        st.success(f"「{search_query}」の検索結果: {len(entries)} 件（うち最新の {len(display_entries)} 件を表示中）")
         
     # ニュースをカード型デザインで並べて表示
-    for entry in entries:
+    for entry in display_entries:
         with st.container(border=True):
             # 関連キーワードのタグ表示
             kw_tags = ", ".join(entry["source_keywords"])
@@ -192,8 +199,9 @@ if entries:
             # 発行日
             st.caption(f"📅 発行日: {entry['published']}")
             
-            # 要約 (Google Newsの場合、HTMLが含まれることがあるため表示を工夫)
-            st.markdown(entry["summary"], unsafe_allow_html=True)
+            # 要約 (表示設定がONの場合のみ、重いHTMLを描画する)
+            if show_summary:
+                st.markdown(entry["summary"], unsafe_allow_html=True)
             
             # 元記事へのリンクボタン
             if entry.get("link"):
