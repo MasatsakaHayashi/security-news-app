@@ -190,9 +190,15 @@ if entries:
     # CSS定義（グリッドレイアウトとカードデザイン）
     st.markdown("""
 <style>
-/* スマホ等で下部に現れるStreamlit仕様の「白いフッター領域」を完全に透過させ、アプリの表示領域を最下部まで拡張する */
-footer { visibility: hidden !important; }
-.stApp { padding-bottom: 0px !important; }
+/* iOS Safari等のブラウザ下部にあるURLバー/ナビゲーションバーの背景に、コンテンツを回り込ませて半透明（グラス効果）にするためのCSS設定 */
+html, body, .stApp {
+    background-color: var(--background-color) !important;
+}
+.block-container {
+    /* デフォルトで画面下部を圧迫している巨大な空間（パディング）を消去し、URLバーの裏側（環境変数 safe-area-inset-bottom）までコンテンツを物理的に滑り込ませる */
+    padding-bottom: env(safe-area-inset-bottom, 20px) !important;
+}
+footer { display: none !important; }
 
 .smart-grid {
     display: grid;
