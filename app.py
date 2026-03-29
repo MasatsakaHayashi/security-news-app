@@ -191,10 +191,7 @@ if entries:
     # CSS定義（グリッドレイアウトとカードデザイン）
     st.markdown("""
 <style>
-/* iOS Safari等のブラウザ下部にあるURLバー/ナビゲーションバーの背景に、コンテンツを回り込ませて半透明（グラス効果）にするためのCSS設定 */
-html, body, .stApp {
-    background-color: var(--background-color) !important;
-}
+/* Streamlit純正のダーク/ライトモード切り替えを阻害する背景色の上書きは削除し、フレームワーク標準の背景色に任せます */
 .block-container {
     /* デフォルトで画面下部を圧迫している巨大な空間（パディング）を消去し、URLバーの裏側（環境変数 safe-area-inset-bottom）までコンテンツを物理的に滑り込ませる */
     padding-bottom: env(safe-area-inset-bottom, 20px) !important;
@@ -238,15 +235,14 @@ footer { display: none !important; }
 }
 .smart-card-title a {
     text-decoration: none;
-    color: var(--text-color);
+    color: inherit; /* Streamlit本体の文字色テーマを自然に継承させる */
 }
 .smart-card-title a:hover {
-    color: var(--primary-color);
+    color: var(--primary-color, #2B6CB0);
     text-decoration: underline;
 }
 .smart-card-meta {
     font-size: 0.85em;
-    color: var(--text-color);
     opacity: 0.7;
     display: flex;
     justify-content: space-between;
@@ -255,7 +251,6 @@ footer { display: none !important; }
 .smart-meta-tag {
     /* タグ部分はさらに濃いブルー領域へ */
     background-color: rgba(30, 120, 240, 0.25);
-    color: var(--text-color);
     padding: 4px 10px;
     border-radius: 16px;
     font-weight: 500;
@@ -267,7 +262,6 @@ footer { display: none !important; }
     /* 要約ブロックも独立したソフトブルーの領域へ */
     background-color: rgba(30, 120, 240, 0.15);
     border-radius: 8px;
-    color: var(--text-color);
     opacity: 0.8;
 }
 
