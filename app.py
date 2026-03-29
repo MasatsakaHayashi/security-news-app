@@ -169,8 +169,8 @@ loading_overlay.markdown("""
     </style>
     <div class="loading-overlay">
         <div class="spinner-custom"></div>
-        <h2>📡 最新のニュース情報を収集しています...</h2>
-        <p style="font-size: 1.1em;">新規取得には数秒〜数十秒かかる場合があります。<br>画面はこのまま触らずにお待ちください。</p>
+        <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 8px;">📡 最新のニュース情報を収集しています...</div>
+        <div style="font-size: 0.85rem; opacity: 0.85;">新規取得には数秒〜数十秒かかる場合があります。<br>画面はこのまま触らずにお待ちください。</div>
     </div>
 """, unsafe_allow_html=True)
 
@@ -209,10 +209,8 @@ footer { display: none !important; }
     padding: 15px 0;
 }
 .smart-card {
-    /* ✨ どんなブラウザでも確実に発色・分離するデザインに変更 */
-    /* 白背景なら「気品あるアイス・スレートブルー」、黒背景なら「深みのある美しいミッドナイトブルー」になります */
-    background-color: var(--background-color);
-    background-image: linear-gradient(135deg, rgba(20, 100, 220, 0.12) 0%, rgba(20, 100, 220, 0.06) 100%);
+    /* ✨ Edge等の「強制ダークモード」でグラデーションが無視され文字だけ白くなる反転バグを防ぐため、単純な透過背景色に変更 */
+    background-color: rgba(30, 120, 240, 0.08); /* 白背景ならアイスブルー、黒背景ならミッドナイトブルーに自然に馴染みます */
     border: none;
     border-left: 5px solid #2B6CB0; /* 左端は美しいダークブルーのアクセントライン */
     border-radius: 12px;
@@ -229,7 +227,7 @@ footer { display: none !important; }
     transform: translateY(-4px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     /* ホバー時はブルーの深みを増して反応を示す */
-    background-image: linear-gradient(135deg, rgba(20, 100, 220, 0.18) 0%, rgba(20, 100, 220, 0.08) 100%);
+    background-color: rgba(30, 120, 240, 0.14);
 }
 .smart-card-title {
     font-size: 1.15rem;
@@ -256,8 +254,7 @@ footer { display: none !important; }
 }
 .smart-meta-tag {
     /* タグ部分はさらに濃いブルー領域へ */
-    background-color: var(--background-color);
-    background-image: linear-gradient(135deg, rgba(20, 100, 220, 0.25) 0%, rgba(20, 100, 220, 0.25) 100%);
+    background-color: rgba(30, 120, 240, 0.25);
     color: var(--text-color);
     padding: 4px 10px;
     border-radius: 16px;
@@ -268,8 +265,7 @@ footer { display: none !important; }
     margin-top: 16px;
     padding: 12px 14px;
     /* 要約ブロックも独立したソフトブルーの領域へ */
-    background-color: var(--background-color);
-    background-image: linear-gradient(135deg, rgba(20, 100, 220, 0.18) 0%, rgba(20, 100, 220, 0.18) 100%);
+    background-color: rgba(30, 120, 240, 0.15);
     border-radius: 8px;
     color: var(--text-color);
     opacity: 0.8;
