@@ -3,6 +3,7 @@ import feedparser
 from urllib.parse import quote
 import os
 import json
+import streamlit.components.v1 as components
 
 # カスタマイズの保存先ファイル
 KEYWORDS_FILE = "custom_keywords.json"
@@ -343,3 +344,39 @@ footer { display: none !important; }
     st.markdown('<div class="smart-grid">' + "".join(news_html_blocks) + '</div>', unsafe_allow_html=True)
 else:
     st.warning("ニュースが見つかりませんでした。別のキーワードをお試しください。")
+
+# --- スマホ表示用: 下スワイプ更新（Pull-to-Refresh）機能の実装 ---
+# Streamlit特有の仕様で無効になっているスワイプ更新を、JavaScriptのタッチイベントを用いて手動で再現します。
+pull_to_refresh_js = """
+<script>
+// Streamlitの親ドキュメントを取得
+const parentDoc = window.parent.document;
+// スクロールを実際に検知しているメインの大枠コンテナを取得
+const scrollContainer = parentDoc.querySelector('[data-testid="stAppViewContainer"]') || parentDoc.querySelector('.stApp') || parentDoc.body;
+
+let startY = 0;
+let isAtTop = false;
+
+// タッチ開始時に、現在画面の一番上（scrollTop == 0）にいるか判定してY座標を記録
+parentDoc.addEventListener('touchstart', (e) => {
+    isAtTop = (scrollContainer.scrollTop === 0);
+    if (isAtTop) {
+        startY = e.touches[0].clientY;
+    }
+}, {passive: true});
+
+// タッチ終了（指を離した）時にスワイプの移動量を計算
+parentDoc.addEventListener('touchend', (e) => {
+    if (!isAtTop || startY === 0) return;
+    let endY = e.changedTouches[0].clientY;
+    
+    // 画面の一番上から150px以上下に強くスワイプされた場合、強制的にページをリロード（ニュース更新）する
+    if (endY - startY > 150) {
+        window.parent.location.reload();
+    }
+    startY = 0;
+}, {passive: true});
+</script>
+"""
+# 画面上には見えないサイズでJSスクリプトを実行
+components.html(pull_to_refresh_js, height=0, width=0)
