@@ -349,32 +349,100 @@ else:
 # Streamlit特有の仕様で無効になっているスワイプ更新を、JavaScriptのタッチイベントを用いて手動で再現します。
 pull_to_refresh_js = """
 <script>
-// Streamlitの親ドキュメントを取得
 const parentDoc = window.parent.document;
-// スクロールを実際に検知しているメインの大枠コンテナを取得
 const scrollContainer = parentDoc.querySelector('[data-testid="stAppViewContainer"]') || parentDoc.querySelector('.stApp') || parentDoc.body;
 
+// 1. スピナー要素（Flutter風のPull-to-Refreshインジケーター）を作成して画面の最上部（画面外）に配置
+if (!parentDoc.getElementById('custom-ptr-spinner')) {
+    const spinner = parentDoc.createElement('div');
+    spinner.id = 'custom-ptr-spinner';
+    // おしゃれな更新矢印アイコン（SVG）
+    spinner.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>';
+    spinner.style.cssText = `
+        position: fixed;
+        top: -50px; /* 初期位置は画面上部の枠外 */
+        left: 50%;
+        width: 40px;
+        height: 40px;
+        margin-left: -20px;
+        background-color: var(--background-color, #ffffff);
+        color: var(--primary-color, #2b6cb0);
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999999;
+        transition: transform 0s;
+        transform: translateY(0) rotate(0deg);
+    `;
+    parentDoc.body.appendChild(spinner);
+    
+    // スピナーの回転およびフワッと戻るアニメーション用CSSを追加
+    const style = parentDoc.createElement('style');
+    style.innerHTML = `
+        @keyframes ptr-spin { 100% { transform: translateY(65px) rotate(360deg); } }
+        .ptr-loading { animation: ptr-spin 0.8s linear infinite !important; }
+        .ptr-animating { transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; }
+    `;
+    parentDoc.head.appendChild(style);
+}
+
+const spinner = parentDoc.getElementById('custom-ptr-spinner');
 let startY = 0;
 let isAtTop = false;
+let isPulling = false;
+const THRESHOLD = 100; // 更新がトリガーされる物理的な引っ張り距離（px）
 
-// タッチ開始時に、現在画面の一番上（scrollTop == 0）にいるか判定してY座標を記録
 parentDoc.addEventListener('touchstart', (e) => {
     isAtTop = (scrollContainer.scrollTop === 0);
     if (isAtTop) {
         startY = e.touches[0].clientY;
+        isPulling = true;
+        // 状態リセット
+        spinner.classList.remove('ptr-animating');
+        spinner.classList.remove('ptr-loading');
     }
 }, {passive: true});
 
-// タッチ終了（指を離した）時にスワイプの移動量を計算
-parentDoc.addEventListener('touchend', (e) => {
-    if (!isAtTop || startY === 0) return;
-    let endY = e.changedTouches[0].clientY;
+parentDoc.addEventListener('touchmove', (e) => {
+    if (!isPulling) return;
+    let currentY = e.touches[0].clientY;
+    let distance = currentY - startY;
     
-    // 画面の一番上から150px以上下に強くスワイプされた場合、強制的にページをリロード（ニュース更新）する
-    if (endY - startY > 150) {
-        window.parent.location.reload();
+    // 下に向かって引っ張られている時だけUIを追従させる
+    if (distance > 0) {
+        // 実際の指の移動距離より少し遅れてついてくる（/2）ことで、ネイティブ特有の「抵抗感」を演出
+        let pullDistance = Math.min(distance / 2, 75); 
+        // 引っ張る量に応じて矢印を回転させる（引くほど回る）
+        let rotation = pullDistance * 4; 
+        spinner.style.transform = `translateY(${pullDistance}px) rotate(${rotation}deg)`;
     }
-    startY = 0;
+}, {passive: true});
+
+// 指を離した時の処理
+parentDoc.addEventListener('touchend', (e) => {
+    if (!isPulling) return;
+    isPulling = false;
+    let endY = e.changedTouches[0].clientY;
+    let distance = endY - startY;
+    
+    // 指を離した瞬間からは滑らかなアニメーションを有効にする
+    spinner.classList.add('ptr-animating'); 
+    
+    if (distance > THRESHOLD) {
+        // しきい値を超えて引っ張っていた場合、定位置（65px）に留まってクルクル回り続ける
+        spinner.style.transform = `translateY(65px)`;
+        spinner.classList.add('ptr-loading');
+        
+        // ローディング（回っている）状態を少し見せてからシステムをリロードする
+        setTimeout(() => {
+            window.parent.location.reload();
+        }, 400); 
+    } else {
+        // 引っ張りが弱かった場合は、元の枠外の位置へフワッと引っ込んで消える
+        spinner.style.transform = `translateY(0px) rotate(0deg)`;
+    }
 }, {passive: true});
 </script>
 """
